@@ -48,6 +48,8 @@ void ObjectDetector::findObject(
       const Fovea &topSaliency,
       const Fovea &botSaliency)
 {
+  std::vector<Point> mainCluster;
+  std::vector<vector<Point>> multiVector;
   int whiteThreshold = 180;
   Point p;
   int mainMatrix[1280][960];
@@ -90,6 +92,7 @@ void ObjectDetector::findObject(
             if(mainMatrix[xpoint + subX][ypoint + subY] > whiteThreshold){
               p = f2.mapFoveaToImage(Point(xpoint + subX,ypoint + subY));
               debugPoints.push_back(p);
+              mainCluster.push_back(p);
             }
           }
         }
@@ -97,6 +100,12 @@ void ObjectDetector::findObject(
     }
   }
 
+
+  //Iterate through main cluster and seperate into minor clusters
+  std::vector<Point>::iterator clustIt;
+  for(clustIt = mainCluster.begin() ; clustIt <= mainCluster.end() ; clustIt++;){
+    
+  }
 
 
    // The fovea class can be accessed in the following ways:
