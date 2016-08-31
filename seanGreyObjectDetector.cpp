@@ -49,7 +49,6 @@ void ObjectDetector::findObject(
       const Fovea &botSaliency)
 {
   std::vector<Point> mainCluster;
-  std::vector<vector<Point>> multiVector;
   int whiteThreshold = 180;
   Point p;
   int mainMatrix[1280][960];
@@ -102,9 +101,11 @@ void ObjectDetector::findObject(
 
 
   //Iterate through main cluster and seperate into minor clusters
+  std::vector<vector<Point> > multiVector;
   std::vector<Point>::iterator clustIt;
+  std::vector<Point> tempClust;
   for(clustIt = mainCluster.begin() ; clustIt <= mainCluster.end() ; clustIt++;){
-    
+
   }
 
 
