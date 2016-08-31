@@ -1,4 +1,4 @@
-polartable <- read.table("polar", header = FALSE)
+polartable <- read.table("polardata", header = FALSE)
 
 #print(polartable)
 
