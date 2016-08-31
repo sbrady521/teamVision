@@ -48,6 +48,8 @@ void ObjectDetector::findObject(
       const Fovea &topSaliency,
       const Fovea &botSaliency)
 {
+  int whiteThreshold = 180;
+  Point p;
   int mainMatrix[1280][960];
   int density = 1;
   bool top = true;
@@ -62,8 +64,8 @@ void ObjectDetector::findObject(
   int xpoint;
   int ypoint;
 
-  for(xpoint = 0 ; xpoint < 1280 ; xpoint++){
-    for(ypoint = 0 ; ypoint < 960 ; ypoint++){
+  for(xpoint = 0 ; xpoint < f2.bb.width() ; xpoint++){
+    for(ypoint = 0 ; ypoint < f2.bb.height() ; ypoint++){
       mainMatrix[xpoint][ypoint] = f2.grey(xpoint, ypoint);
     }
   }
@@ -71,8 +73,8 @@ void ObjectDetector::findObject(
   int subX;
   int subY;
   int totalGrey = 0;
-  for(xpoint = 0 ; xpoint < 1280 ; xpoint += 80){
-    for(ypoint = 0 ; ypoint < 960 ; ypoint += 80){
+  for(xpoint = 0 ; xpoint < f2.bb.width() ; xpoint += 80){
+    for(ypoint = 0 ; ypoint < f2.bb.height() ; ypoint += 80){
       totalGrey = 0;
       for(subX = 0 ; subX < 80 ; subX++){
         for(subY = 0 ; subY < 80 ; subY++){
@@ -85,8 +87,8 @@ void ObjectDetector::findObject(
       }else{
         for(subX = 0 ; subX < 80 ; subX++){
           for(subY = 0 ; subY < 80 ; subY++){
-            if(f2.colour(xpoint + subX, ypoint + subY) == 6){
-              Point p = Point(xpoint,ypoint);
+            if(mainMatrix[xpoint + subX][ypoint + subY] > whiteThreshold){
+              p = f2.mapFoveaToImage(Point(xpoint + subX,ypoint + subY));
               debugPoints.push_back(p);
             }
           }
