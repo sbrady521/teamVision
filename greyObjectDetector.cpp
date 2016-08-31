@@ -30,7 +30,7 @@ using namespace boost::numeric::ublas;
 #define SUBM_L 80
 #define SUBM_H 80
 
-typedef int gmatrix[1280][960];
+typedef int gmatrix[640][480];
 typedef int subMatrix[80][80];
 /* ########################### */
 /* Constructor and comparators */
@@ -68,55 +68,59 @@ void ObjectDetector::findObject(
 {
    int xptr = 0;
    int yptr = 0;
-   //int width = topSaliency.bb.width();
-   //int height = topSaliency.bb.height();
    Point p;
    gmatrix greyMatrix;
    int greyVal;
    
    int whiteThreshold = 180;
 
-   int density = 1;
+   int density = 3;
    bool top = true;
    BBox box;
    box.a = Point(0,0);
-   box.b = Point(1280,960);
+   box.b = Point(640,480);
    boost::shared_ptr<FoveaT<hNone, eGrey> > ballFovea(
          new FoveaT<hNone, eGrey>(box, density, 0, top));
    ballFovea->actuate(frame);
    Fovea f2 = ballFovea->asFovea();
 
-   for (xptr = 0; xptr < f2.bb.width(); xptr++){
-      for (yptr = 0; yptr < f2.bb.height(); yptr++){
-         greyVal = f2.grey(xptr,yptr);
+   int width = f2.bb.width();
+   int height = f2.bb.height();
+   printf("%d %d\n", width, height);
+
+   for (xptr = 0; xptr < width; xptr++){
+      for (yptr = 0; yptr < height; yptr++){
+         greyVal = f2.grey(xptr,yptr);          //store grey values in a matrix
          greyMatrix[xptr][yptr] = greyVal;
-         //printf("%d ",greyMatrix[xptr][yptr]);
       }
-      //printf("\n");
    }
    //after getting a grey matrix identify possible points which may be white (val <), possibly remove massive blobs of white
    //perhaps it might be better to take the average of all submatrixes???
-
-   subMatrix sub;
    int xcnt;
    int ycnt;
    int avg;
-   for (xptr = 0; xptr < f2.bb.width(); xptr += 80){
-      for (yptr = 0; yptr < f2.bb.height(); yptr += 80){
+
+   int subWidth = 80;
+   int subHeight = 80;
+
+   int upperThresh = 148;
+   int lowerThresh = 50;
+
+   for (xptr = 0; xptr < width; xptr += subWidth){
+      for (yptr = 0; yptr < height; yptr += subHeight){
          avg = 0;
-         for (xcnt = xptr; xcnt < xptr+80; xcnt++){
-            for (ycnt = yptr; ycnt < yptr+80; ycnt++){
+         for (xcnt = xptr; xcnt < xptr+subWidth; xcnt++){
+            for (ycnt = yptr; ycnt < yptr+subHeight; ycnt++){
                //sub[xcnt][ycnt] = greyMatrix[xcnt][ycnt];
                avg += greyMatrix[xcnt][ycnt];
             }
          }
-         avg = avg/6400;
-         if (avg >= 150 || avg <= 50){
+         avg = avg/(subWidth*subHeight);
+         if (avg >= upperThresh || avg <= lowerThresh){
             continue;
          } else {
-            for (xcnt = xptr; xcnt <= xptr+79; xcnt++){
-               for (ycnt = yptr; ycnt <= yptr+79; ycnt++){
-                  //printf("Pushing point...%d %d\n", xcnt, ycnt);
+            for (xcnt = xptr; xcnt < xptr+subWidth; xcnt++){
+               for (ycnt = yptr; ycnt < yptr+subHeight; ycnt++){
                   if(greyMatrix[xcnt][ycnt] < whiteThreshold) continue;
                   p = f2.mapFoveaToImage(Point(xcnt,ycnt));
                   debugPoints.push_back(p);
