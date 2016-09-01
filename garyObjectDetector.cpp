@@ -125,7 +125,7 @@ void ObjectDetector::findObject(
                for (ycnt = yptr; ycnt < yptr+subHeight; ycnt++){
                   if(greyMatrix[xcnt][ycnt] < whiteThreshold) continue;
                   p = f2.mapFoveaToImage(Point(xcnt,ycnt));
-                  debugPoints.push_back(p);
+                  //debugPoints.push_back(p);
                   whites.push_back(p);
                }
             }
@@ -138,7 +138,7 @@ void ObjectDetector::findObject(
    int r;
    int theta;
    double pi = std::acos(-1);
-   int rthetagraph[180][1600] = {0}; //180 - degrees; 1600 - maximum r; counts how many lines at each particular rtheta
+   int rthetagraph[180][3200] = {{0},{0}}; //180 - degrees; 1600 - maximum r; counts how many lines at each particular rtheta
 
    for (i = 0; i < whites.size(); i++){   //get possible polar forms
       p = whites[i];
@@ -146,10 +146,31 @@ void ObjectDetector::findObject(
       yval = p.y();
       for(theta = 0; theta <= 180; theta += 3){
          r = xval*std::cos(theta*pi/180) + yval*std::sin(theta*pi/180);
-         rtheta[theta][r]++;
-         fprintf(stderr, "%d %d\n", r, theta);
+         rthetagraph[theta][r+1600]++;
+         //fprintf(stderr, "%d %d\n", r, theta);
       }
    }
+
+   /*for(theta = 0; theta <= 180; theta += 3){
+      for(r = 0; r <= 3200; r++){
+         if(rthetagraph[theta][r] > 200) fprintf(stderr, "%d intersections at (%d,%d)\n", rthetagraph[theta][r], r-1600, theta);
+      }
+   }*/
+
+   for (i = 0; i < whites.size(); i++){   //get possible polar forms
+      p = whites[i];
+      xval = p.x();
+      yval = p.y();
+      for(theta = 0; theta <= 180; theta += 3){
+         r = xval*std::cos(theta*pi/180) + yval*std::sin(theta*pi/180);
+         if (rthetagraph[theta][r+1600] > 60){
+            debugPoints.push_back(p);
+         }
+         //fprintf(stderr, "%d %d\n", r, theta);
+      }
+   }
+
+
 
    //join each point with every other point - find lines of similar gradients, suggests there may be a line there
    //or express the point in polar form, and propose a line eqtn : xcos(theta)+ycos(theta) = r
