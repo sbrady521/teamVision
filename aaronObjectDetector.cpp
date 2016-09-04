@@ -47,11 +47,18 @@ void ObjectDetector::findObject(
       const Fovea &botSaliency)
 {
    //Check the colour of every pixel in the saliency image
-   //If the pixel is white and it is touching 2 or more green pixels, push that pixel
+   //If the pixel is white and it is touching 2 or more green pixels, add it to the array of possible edge points
    int x,y;
+   int imageWidth = topSaliency.bb.width();
+   int imageHeight = topSaliency.bb.height();
 
-   for (y = 1; y < topSaliency.bb.height()-1; y++) {
-      for (x = 1; x < topSaliency.bb.width()-1; x++) {
+   //This array contains 0s and 1s 
+   //1 = that corresponding point in the image is a possible edge point
+   //0 = that point is not an edge point
+   int possibleEdgePoints[160][120] = {0}; //Since top saliency is 160x120
+
+   for (y = 1; y < imageHeight-1; y++) {
+      for (x = 1; x < imageWidth-1; x++) {
          int numTouching = 0;
          if (topSaliency.colour(x,y) == cWHITE) {
             if (topSaliency.colour(x,y-1) == cFIELD_GREEN) numTouching++; //check pixel above
@@ -64,13 +71,41 @@ void ObjectDetector::findObject(
             if (topSaliency.colour(x-1,y-1) == cFIELD_GREEN) numTouching++; //check top left
 
             if (numTouching >= 2) {
-               Point p = Point(x,y);
-               p = topSaliency.mapFoveaToImage(p);
-               debugPoints.push_back(p);
+               possibleEdgePoints[x][y] = 1;
             }
          }
       }
    }
+
+   int sqroot = sqrt(imageWidth*imageWidth + imageHeight*imageHeight); //200
+   int houghGraph[360][sqroot];
+
+   for (y = 1; y < imageHeight-1; y++) {
+      for (x = 1; x < imageWidth-1; x++) {
+         if (possibleEdgePoints[x][y] == 1) {
+            //Find r and theta for all possible lines through (x,y)
+            //Increment the corresponding (theta,r) points on houghGraph
+
+            //coordinates are with respect to the bottom left corner of the 2D array
+            //i.e. bottom left corner is (0,0)
+            int xCoord = x; 
+            int yCoord = imageHeight - y;
+
+            int theta, r;
+            for (theta = 0; theta < 360; theta++) { //Theta is in degrees, not radians
+               r = 0;
+               while ((int)round(xCoord*cos(degToRad(theta)) + yCoord*sin(degToRad(theta))) != r) {
+                  r++;
+               }
+               houghGraph[theta][r]++;
+            }
+         }
+      }
+   }
+
+   //TODO - Loop through houghGraph, find the (theta,r) points with the highest value(s)
+   //Push all points along those line(s) to offnao
+
 
    /*
    // The fovea class can be accessed in the following ways:
