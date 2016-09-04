@@ -46,23 +46,22 @@ void ObjectDetector::findObject(
       const Fovea &topSaliency,
       const Fovea &botSaliency)
 {
-   //Check the colour of every pixel in the array
-   //If the pixel is white and it is touching 2 or more non-white pixels, push that pixel
+   //Check the colour of every pixel in the saliency image
+   //If the pixel is white and it is touching 2 or more green pixels, push that pixel
    int x,y;
-   //int possibleEdges[x2][y2] = {0};
 
    for (y = 1; y < topSaliency.bb.height()-1; y++) {
       for (x = 1; x < topSaliency.bb.width()-1; x++) {
          int numTouching = 0;
-         if (topSaliency.colour(x,y) == 6) {
-            if (topSaliency.colour(x,y-1) != 6) numTouching++; //check pixel above
-            if (topSaliency.colour(x+1,y-1) != 6) numTouching++; //check top right
-            if (topSaliency.colour(x+1,y) != 6) numTouching++; //check right
-            if (topSaliency.colour(x+1,y+1) != 6) numTouching++; //check bottom right
-            if (topSaliency.colour(x,y+1) != 6) numTouching++; //check bottom
-            if (topSaliency.colour(x-1,y+1) != 6) numTouching++; //check bottom left
-            if (topSaliency.colour(x-1,y) != 6) numTouching++; //check left
-            if (topSaliency.colour(x-1,y-1) != 6) numTouching++; //check top left
+         if (topSaliency.colour(x,y) == cWHITE) {
+            if (topSaliency.colour(x,y-1) == cFIELD_GREEN) numTouching++; //check pixel above
+            if (topSaliency.colour(x+1,y-1) == cFIELD_GREEN) numTouching++; //check top right
+            if (topSaliency.colour(x+1,y) == cFIELD_GREEN) numTouching++; //check right
+            if (topSaliency.colour(x+1,y+1) == cFIELD_GREEN) numTouching++; //check bottom right
+            if (topSaliency.colour(x,y+1) == cFIELD_GREEN) numTouching++; //check bottom
+            if (topSaliency.colour(x-1,y+1) == cFIELD_GREEN) numTouching++; //check bottom left
+            if (topSaliency.colour(x-1,y) == cFIELD_GREEN) numTouching++; //check left
+            if (topSaliency.colour(x-1,y-1) == cFIELD_GREEN) numTouching++; //check top left
 
             if (numTouching >= 2) {
                Point p = Point(x,y);
@@ -72,17 +71,6 @@ void ObjectDetector::findObject(
          }
       }
    }
-
-   //If a possible edge is an isolated pixel. If it is, don't push it because it can't be an edge
-   //Otherwise push it
-
-   /*for (y = 1; y < y2-1; y++) {
-      for (x = 1; x < x2-1; x++) {
-         if (possibleEdges[x][y] == 1) {
-
-         }
-      }
-   }*/
 
    /*
    // The fovea class can be accessed in the following ways:
