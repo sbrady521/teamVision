@@ -46,49 +46,43 @@ void ObjectDetector::findObject(
       const Fovea &topSaliency,
       const Fovea &botSaliency)
 {
-   //Look for a white pixel with a non-white pixel below it
-   //Check if the pixel to the right of the white pixel is also white
-   //Check if the pixel to the right of the non-white pixel is also non-white
-   //Repeat until you find 4 adjacent white pixels with 4 adjacent non-white pixels below them
-   //This is considered to be an edge - push those 4 white pixels as debug points
+   //Check the colour of every pixel in the array
+   //If the pixel is white and it is touching 2 or more non-white pixels, push that pixel
    int x,y;
-   int x2 = topSaliency.bb.width();
-   int y2 = topSaliency.bb.height();
-   for (y = 0; y < y2-1; y++) {
-      for (x = 0; x < x2-3; x++) {
-         Colour pixel = topSaliency.colour(x,y);
-         Colour pixelBottom = topSaliency.colour(x,y+1);
-         if (pixel == 6 && pixelBottom != 6) {
-            Colour pixel = topSaliency.colour(x+1,y);
-            Colour pixelBottom = topSaliency.colour(x+1,y+1);
-            if (pixel == 6 && pixelBottom != 6) {
-               Colour pixel = topSaliency.colour(x+2,y);
-               Colour pixelBottom = topSaliency.colour(x+2,y+1);
-               if (pixel == 6 && pixelBottom != 6) {
-                  Colour pixel = topSaliency.colour(x+3,y);
-                  Colour pixelBottom = topSaliency.colour(x+3,y+1);
-                  Point p1 = Point(x,y);
-                  Point p2 = Point(x+1,y);
-                  Point p3 = Point(x+2,y);
-                  Point p4 = Point(x+3,y);
-                  p1 = topSaliency.mapFoveaToImage(p1);
-                  p2 = topSaliency.mapFoveaToImage(p2);
-                  p3 = topSaliency.mapFoveaToImage(p3);
-                  p4 = topSaliency.mapFoveaToImage(p4);
-                  debugPoints.push_back(p1);
-                  debugPoints.push_back(p2);
-                  debugPoints.push_back(p3);
-                  debugPoints.push_back(p4);
-                  printf("Points pushed\n");
-               }
+   //int possibleEdges[x2][y2] = {0};
+
+   for (y = 1; y < topSaliency.bb.height()-1; y++) {
+      for (x = 1; x < topSaliency.bb.width()-1; x++) {
+         int numTouching = 0;
+         if (topSaliency.colour(x,y) == 6) {
+            if (topSaliency.colour(x,y-1) != 6) numTouching++; //check pixel above
+            if (topSaliency.colour(x+1,y-1) != 6) numTouching++; //check top right
+            if (topSaliency.colour(x+1,y) != 6) numTouching++; //check right
+            if (topSaliency.colour(x+1,y+1) != 6) numTouching++; //check bottom right
+            if (topSaliency.colour(x,y+1) != 6) numTouching++; //check bottom
+            if (topSaliency.colour(x-1,y+1) != 6) numTouching++; //check bottom left
+            if (topSaliency.colour(x-1,y) != 6) numTouching++; //check left
+            if (topSaliency.colour(x-1,y-1) != 6) numTouching++; //check top left
+
+            if (numTouching >= 2) {
+               Point p = Point(x,y);
+               p = topSaliency.mapFoveaToImage(p);
+               debugPoints.push_back(p);
             }
          }
       }
    }
 
-   //Get all possible combinations of 3 points with greyVal >= 200
-   //Find area of triangle they make
-   //If area < threshold, push the points
+   //If a possible edge is an isolated pixel. If it is, don't push it because it can't be an edge
+   //Otherwise push it
+
+   /*for (y = 1; y < y2-1; y++) {
+      for (x = 1; x < x2-1; x++) {
+         if (possibleEdges[x][y] == 1) {
+
+         }
+      }
+   }*/
 
    /*
    // The fovea class can be accessed in the following ways:
