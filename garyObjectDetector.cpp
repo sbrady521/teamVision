@@ -30,7 +30,7 @@ using namespace boost::numeric::ublas;
 #define SUBM_L 80
 #define SUBM_H 80
 
-typedef int gmatrix[640][480];
+typedef int gmatrix[320][240];
 typedef int subMatrix[80][80];
 /* ########################### */
 /* Constructor and comparators */
@@ -72,13 +72,13 @@ void ObjectDetector::findObject(
    gmatrix greyMatrix;
    int greyVal;
    
-   int whiteThreshold = 180;
+   int whiteThreshold = 160;
 
-   int density = 2;
+   int density = 4;
    bool top = true;
    BBox box;
    box.a = Point(0,0);
-   box.b = Point(640,480);
+   box.b = Point(320,240);
    boost::shared_ptr<FoveaT<hNone, eGrey> > ballFovea(
          new FoveaT<hNone, eGrey>(box, density, 0, top));
    ballFovea->actuate(frame);
@@ -103,7 +103,7 @@ void ObjectDetector::findObject(
    int subWidth = 80;
    int subHeight = 80;
 
-   int upperThresh = 148;
+   int upperThresh = 84;
    int lowerThresh = 50;
 
    std::vector<Point> whites; 
@@ -138,32 +138,26 @@ void ObjectDetector::findObject(
    int r;
    int theta;
    double pi = std::acos(-1);
-   int rthetagraph[180][3200] = {{0},{0}}; //180 - degrees; 1600 - maximum r; counts how many lines at each particular rtheta
+   int rthetagraph[180][800] = {{0},{0}}; //180 - degrees; 1600 - maximum r; counts how many lines at each particular rtheta
 
    for (i = 0; i < whites.size(); i++){   //get possible polar forms
       p = whites[i];
-      xval = p.x();
-      yval = p.y();
+      xval = f2.mapImageToFovea(p).x();
+      yval = f2.mapImageToFovea(p).y();
       for(theta = 0; theta <= 180; theta += 3){
          r = xval*std::cos(theta*pi/180) + yval*std::sin(theta*pi/180);
-         rthetagraph[theta][r+1600]++;
+         rthetagraph[theta][r+400]++;
          //fprintf(stderr, "%d %d\n", r, theta);
       }
    }
 
-   /*for(theta = 0; theta <= 180; theta += 3){
-      for(r = 0; r <= 3200; r++){
-         if(rthetagraph[theta][r] > 200) fprintf(stderr, "%d intersections at (%d,%d)\n", rthetagraph[theta][r], r-1600, theta);
-      }
-   }*/
-
    for (i = 0; i < whites.size(); i++){   //get possible polar forms
       p = whites[i];
-      xval = p.x();
-      yval = p.y();
+      xval = f2.mapImageToFovea(p).x();
+      yval = f2.mapImageToFovea(p).y();
       for(theta = 0; theta <= 180; theta += 3){
          r = xval*std::cos(theta*pi/180) + yval*std::sin(theta*pi/180);
-         if (rthetagraph[theta][r+1600] > 60){
+         if (rthetagraph[theta][r+400] > 60){
             debugPoints.push_back(p);
          }
          //fprintf(stderr, "%d %d\n", r, theta);
